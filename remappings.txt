@@ -1,2 +1,8 @@
 forge-std/=lib/forge-std/src/
 @openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
+@symbiotic/core/contracts/=lib/core/src/contracts/
+@symbiotic/core/interfaces/=lib/core/src/interfaces/
+@symbiotic/core/mocks/=lib/core/test/mocks/
+@symbiotic/collateral/contracts/=lib/collateral/src/contracts/
+@symbiotic/collateral/interfaces/=lib/collateral/src/interfaces/
+@symbiotic/collateral/mocks/=lib/collateral/test/mocks/
