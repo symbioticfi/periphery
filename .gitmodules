@@ -7,3 +7,6 @@
 [submodule "lib/collateral"]
 	path = lib/collateral
 	url = https://github.com/symbioticfi/collateral
+[submodule "lib/core"]
+	path = lib/core
+	url = https://github.com/symbioticfi/core
