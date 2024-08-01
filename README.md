@@ -1,8 +1,10 @@
 ## ⚠️ Disclaimer: This code is going through audits. It is NOT intended for a production use yet.
 
-## Symbiotic
+**[Symbiotic Protocol](https://symbiotic.fi) is an extremely flexible and permissionless shared security system.**
 
-**Symbiotic is a shared security protocol enabling decentralized networks to control and customize their own multi-asset restaking implementation.**
+This repository contains Symbiotic Periphery contracts:
+
+- Default Collateral Migrator - to withdraw an underlying asset and deposit it to a vault in one transaction
 
 ## Technical Documentation
 
