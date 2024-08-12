@@ -6,9 +6,11 @@ import {IDefaultCollateralMigrator} from "src/interfaces/IDefaultCollateralMigra
 import {IDefaultCollateral} from "@symbiotic/collateral/interfaces/defaultCollateral/IDefaultCollateral.sol";
 import {IVault} from "@symbiotic/core/interfaces/vault/IVault.sol";
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract DefaultCollateralMigrator is IDefaultCollateralMigrator {
+    using SafeERC20 for IERC20;
+
     /**
      * @inheritdoc IDefaultCollateralMigrator
      */
@@ -23,7 +25,9 @@ contract DefaultCollateralMigrator is IDefaultCollateralMigrator {
 
         address asset = IDefaultCollateral(collateral).asset();
         amount = IERC20(asset).balanceOf(address(this));
-        IERC20(asset).approve(vault, amount);
+        if (IERC20(asset).allowance(address(this), vault) < amount) {
+            IERC20(asset).forceApprove(vault, type(uint256).max);
+        }
         return IVault(vault).deposit(onBehalfOf, amount);
     }
 }

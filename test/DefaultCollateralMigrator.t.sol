@@ -226,6 +226,9 @@ contract DefaultCollateralMigratorTest is Test {
         );
 
         assertEq(vault.balanceOf(address(this)), amount);
+        assertEq(
+            IERC20(collateral.asset()).allowance(address(defaultCollateralMigrator), address(vault)), type(uint256).max
+        );
     }
 
     function test_MigrateFeeOnTransferToken(uint256 amount) public {
@@ -263,6 +266,12 @@ contract DefaultCollateralMigratorTest is Test {
         );
 
         assertEq(vaultFeeOnTransfer.balanceOf(address(this)), amount - 2);
+        assertEq(
+            IERC20(feeOnTransferCollateral.asset()).allowance(
+                address(defaultCollateralMigrator), address(vaultFeeOnTransfer)
+            ),
+            type(uint256).max
+        );
     }
 
     function _getVault(uint48 epochDuration) internal returns (Vault) {
