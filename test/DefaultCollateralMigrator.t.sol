@@ -3,32 +3,32 @@ pragma solidity 0.8.25;
 
 import {Test, console2} from "forge-std/Test.sol";
 
-import {DefaultCollateralMigrator} from "src/contracts/DefaultCollateralMigrator.sol";
+import {DefaultCollateralMigrator} from "../src/contracts/DefaultCollateralMigrator.sol";
 
-import {DefaultCollateralFactory} from "@symbiotic/collateral/contracts/defaultCollateral/DefaultCollateralFactory.sol";
-import {DefaultCollateral} from "@symbiotic/collateral/contracts/defaultCollateral/DefaultCollateral.sol";
+import {IDefaultCollateralFactory} from "../src/interfaces/defaultCollateral/IDefaultCollateralFactory.sol";
+import {IDefaultCollateral} from "../src/interfaces/defaultCollateral/IDefaultCollateral.sol";
 
-import {VaultFactory} from "@symbiotic/core/contracts/VaultFactory.sol";
-import {DelegatorFactory} from "@symbiotic/core/contracts/DelegatorFactory.sol";
-import {SlasherFactory} from "@symbiotic/core/contracts/SlasherFactory.sol";
-import {NetworkRegistry} from "@symbiotic/core/contracts/NetworkRegistry.sol";
-import {OperatorRegistry} from "@symbiotic/core/contracts/OperatorRegistry.sol";
-import {MetadataService} from "@symbiotic/core/contracts/service/MetadataService.sol";
-import {NetworkMiddlewareService} from "@symbiotic/core/contracts/service/NetworkMiddlewareService.sol";
-import {OptInService} from "@symbiotic/core/contracts/service/OptInService.sol";
+import {VaultFactory} from "@symbioticfi/core/src/contracts/VaultFactory.sol";
+import {DelegatorFactory} from "@symbioticfi/core/src/contracts/DelegatorFactory.sol";
+import {SlasherFactory} from "@symbioticfi/core/src/contracts/SlasherFactory.sol";
+import {NetworkRegistry} from "@symbioticfi/core/src/contracts/NetworkRegistry.sol";
+import {OperatorRegistry} from "@symbioticfi/core/src/contracts/OperatorRegistry.sol";
+import {MetadataService} from "@symbioticfi/core/src/contracts/service/MetadataService.sol";
+import {NetworkMiddlewareService} from "@symbioticfi/core/src/contracts/service/NetworkMiddlewareService.sol";
+import {OptInService} from "@symbioticfi/core/src/contracts/service/OptInService.sol";
 
-import {Vault} from "@symbiotic/core/contracts/vault/Vault.sol";
-import {NetworkRestakeDelegator} from "@symbiotic/core/contracts/delegator/NetworkRestakeDelegator.sol";
-import {FullRestakeDelegator} from "@symbiotic/core/contracts/delegator/FullRestakeDelegator.sol";
-import {Slasher} from "@symbiotic/core/contracts/slasher/Slasher.sol";
-import {VetoSlasher} from "@symbiotic/core/contracts/slasher/VetoSlasher.sol";
+import {Vault} from "@symbioticfi/core/src/contracts/vault/Vault.sol";
+import {NetworkRestakeDelegator} from "@symbioticfi/core/src/contracts/delegator/NetworkRestakeDelegator.sol";
+import {FullRestakeDelegator} from "@symbioticfi/core/src/contracts/delegator/FullRestakeDelegator.sol";
+import {Slasher} from "@symbioticfi/core/src/contracts/slasher/Slasher.sol";
+import {VetoSlasher} from "@symbioticfi/core/src/contracts/slasher/VetoSlasher.sol";
 
-import {Token} from "@symbiotic/core/mocks/Token.sol";
-import {FeeOnTransferToken} from "@symbiotic/core/mocks/FeeOnTransferToken.sol";
-import {VaultConfigurator, IVaultConfigurator} from "@symbiotic/core/contracts/VaultConfigurator.sol";
-import {IVault} from "@symbiotic/core/interfaces/IVaultConfigurator.sol";
-import {INetworkRestakeDelegator} from "@symbiotic/core/interfaces/delegator/INetworkRestakeDelegator.sol";
-import {IBaseDelegator} from "@symbiotic/core/interfaces/delegator/IBaseDelegator.sol";
+import {Token} from "@symbioticfi/core/test/mocks/Token.sol";
+import {FeeOnTransferToken} from "@symbioticfi/core/test/mocks/FeeOnTransferToken.sol";
+import {VaultConfigurator, IVaultConfigurator} from "@symbioticfi/core/src/contracts/VaultConfigurator.sol";
+import {IVault} from "@symbioticfi/core/src/interfaces/IVaultConfigurator.sol";
+import {INetworkRestakeDelegator} from "@symbioticfi/core/src/interfaces/delegator/INetworkRestakeDelegator.sol";
+import {IBaseDelegator} from "@symbioticfi/core/src/interfaces/delegator/IBaseDelegator.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -39,10 +39,12 @@ contract DefaultCollateralMigratorTest is Test {
     address bob;
     uint256 bobPrivateKey;
 
-    DefaultCollateralFactory defaultCollateralFactory;
+    address public constant DEFAULT_COLLATERAL_FACTORY = 0x1BC8FCFbE6Aa17e4A7610F51B888f34583D202Ec;
 
-    DefaultCollateral collateral;
-    DefaultCollateral feeOnTransferCollateral;
+    IDefaultCollateralFactory defaultCollateralFactory;
+
+    IDefaultCollateral collateral;
+    IDefaultCollateral feeOnTransferCollateral;
 
     VaultFactory vaultFactory;
     DelegatorFactory delegatorFactory;
@@ -68,6 +70,9 @@ contract DefaultCollateralMigratorTest is Test {
     DefaultCollateralMigrator defaultCollateralMigrator;
 
     function setUp() public {
+        uint256 mainnetFork = vm.createFork(vm.rpcUrl("mainnet"));
+        vm.selectFork(mainnetFork);
+
         owner = address(this);
         (alice, alicePrivateKey) = makeAddrAndKey("alice");
         (bob, bobPrivateKey) = makeAddrAndKey("bob");
@@ -138,15 +143,15 @@ contract DefaultCollateralMigratorTest is Test {
         Token token = new Token("Token");
         FeeOnTransferToken feeOnTransferToken = new FeeOnTransferToken("FeeOnTransferToken");
 
-        defaultCollateralFactory = new DefaultCollateralFactory();
+        defaultCollateralFactory = IDefaultCollateralFactory(DEFAULT_COLLATERAL_FACTORY);
 
         address defaultCollateralAddress =
             defaultCollateralFactory.create(address(token), type(uint256).max, address(0));
-        collateral = DefaultCollateral(defaultCollateralAddress);
+        collateral = IDefaultCollateral(defaultCollateralAddress);
 
         defaultCollateralAddress =
             defaultCollateralFactory.create(address(feeOnTransferToken), type(uint256).max, address(0));
-        feeOnTransferCollateral = DefaultCollateral(defaultCollateralAddress);
+        feeOnTransferCollateral = IDefaultCollateral(defaultCollateralAddress);
 
         token.approve(address(collateral), type(uint256).max);
 
@@ -201,7 +206,9 @@ contract DefaultCollateralMigratorTest is Test {
         defaultCollateralMigrator = new DefaultCollateralMigrator();
     }
 
-    function test_Migrate(uint256 amount) public {
+    function test_Migrate(
+        uint256 amount
+    ) public {
         amount = bound(amount, 1, 1000 * 1e18);
 
         uint256 balanceBeforeCollateralThis = collateral.balanceOf(address(this));
@@ -231,7 +238,9 @@ contract DefaultCollateralMigratorTest is Test {
         );
     }
 
-    function test_MigrateFeeOnTransferToken(uint256 amount) public {
+    function test_MigrateFeeOnTransferToken(
+        uint256 amount
+    ) public {
         amount = bound(amount, 3, 500 * 1e18);
 
         uint256 balanceBeforeCollateralThis = feeOnTransferCollateral.balanceOf(address(this));
@@ -274,7 +283,9 @@ contract DefaultCollateralMigratorTest is Test {
         );
     }
 
-    function _getVault(uint48 epochDuration) internal returns (Vault) {
+    function _getVault(
+        uint48 epochDuration
+    ) internal returns (Vault) {
         address[] memory networkLimitSetRoleHolders = new address[](1);
         networkLimitSetRoleHolders[0] = alice;
         address[] memory operatorNetworkSharesSetRoleHolders = new address[](1);

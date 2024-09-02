@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {IDefaultCollateralMigrator} from "src/interfaces/IDefaultCollateralMigrator.sol";
+import {IDefaultCollateralMigrator} from "../interfaces/IDefaultCollateralMigrator.sol";
+import {IDefaultCollateral} from "../interfaces/defaultCollateral/IDefaultCollateral.sol";
 
-import {IDefaultCollateral} from "@symbiotic/collateral/interfaces/defaultCollateral/IDefaultCollateral.sol";
-import {IVault} from "@symbiotic/core/interfaces/vault/IVault.sol";
+import {IVault} from "@symbioticfi/core/src/interfaces/vault/IVault.sol";
 
 import {SafeERC20, IERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
