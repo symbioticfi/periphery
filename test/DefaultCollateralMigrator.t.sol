@@ -173,15 +173,19 @@ contract DefaultCollateralMigratorTest is Test {
                 version: vaultFactory.lastVersion(),
                 owner: alice,
                 vaultParams: IVault.InitParams({
-                    collateral: address(feeOnTransferToken),
+                    collateral: address(feeOnTransferCollateral.asset()),
                     delegator: address(0),
                     slasher: address(0),
                     burner: address(0xdEaD),
                     epochDuration: epochDuration,
                     depositWhitelist: false,
+                    isDepositLimit: false,
+                    depositLimit: 0,
                     defaultAdminRoleHolder: alice,
                     depositWhitelistSetRoleHolder: alice,
-                    depositorWhitelistRoleHolder: alice
+                    depositorWhitelistRoleHolder: alice,
+                    isDepositLimitSetRoleHolder: alice,
+                    depositLimitSetRoleHolder: alice
                 }),
                 delegatorIndex: 0,
                 delegatorParams: abi.encode(
@@ -301,9 +305,13 @@ contract DefaultCollateralMigratorTest is Test {
                     burner: address(0xdEaD),
                     epochDuration: epochDuration,
                     depositWhitelist: false,
+                    isDepositLimit: false,
+                    depositLimit: 0,
                     defaultAdminRoleHolder: alice,
                     depositWhitelistSetRoleHolder: alice,
-                    depositorWhitelistRoleHolder: alice
+                    depositorWhitelistRoleHolder: alice,
+                    isDepositLimitSetRoleHolder: alice,
+                    depositLimitSetRoleHolder: alice
                 }),
                 delegatorIndex: 0,
                 delegatorParams: abi.encode(
