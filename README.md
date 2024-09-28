@@ -4,7 +4,7 @@
 
 This repository contains Symbiotic Periphery contracts:
 
-- Default Collateral Migrator - to withdraw an underlying asset and deposit it to a vault in one transaction
+- Default Collateral Migrator - to withdraw an underlying asset and deposit it to a vault in one transaction.
 
 ## Usage
 
