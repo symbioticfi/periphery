@@ -5,8 +5,9 @@ import {Test, console2} from "forge-std/Test.sol";
 
 import {DefaultCollateralMigrator} from "../src/contracts/DefaultCollateralMigrator.sol";
 
-import {IDefaultCollateralFactory} from "../src/interfaces/defaultCollateral/IDefaultCollateralFactory.sol";
-import {IDefaultCollateral} from "../src/interfaces/defaultCollateral/IDefaultCollateral.sol";
+import {IDefaultCollateralFactory} from
+    "@symbioticfi/collateral/src/interfaces/defaultCollateral/IDefaultCollateralFactory.sol";
+import {IDefaultCollateral} from "@symbioticfi/collateral/src/interfaces/defaultCollateral/IDefaultCollateral.sol";
 
 import {VaultFactory} from "@symbioticfi/core/src/contracts/VaultFactory.sol";
 import {DelegatorFactory} from "@symbioticfi/core/src/contracts/DelegatorFactory.sol";
@@ -20,13 +21,14 @@ import {OptInService} from "@symbioticfi/core/src/contracts/service/OptInService
 import {Vault} from "@symbioticfi/core/src/contracts/vault/Vault.sol";
 import {NetworkRestakeDelegator} from "@symbioticfi/core/src/contracts/delegator/NetworkRestakeDelegator.sol";
 import {FullRestakeDelegator} from "@symbioticfi/core/src/contracts/delegator/FullRestakeDelegator.sol";
+import {OperatorSpecificDelegator} from "@symbioticfi/core/src/contracts/delegator/OperatorSpecificDelegator.sol";
 import {Slasher} from "@symbioticfi/core/src/contracts/slasher/Slasher.sol";
 import {VetoSlasher} from "@symbioticfi/core/src/contracts/slasher/VetoSlasher.sol";
 
 import {Token} from "@symbioticfi/core/test/mocks/Token.sol";
 import {FeeOnTransferToken} from "@symbioticfi/core/test/mocks/FeeOnTransferToken.sol";
 import {VaultConfigurator, IVaultConfigurator} from "@symbioticfi/core/src/contracts/VaultConfigurator.sol";
-import {IVault} from "@symbioticfi/core/src/interfaces/IVaultConfigurator.sol";
+import {IVault} from "@symbioticfi/core/src/interfaces/vault/IVault.sol";
 import {INetworkRestakeDelegator} from "@symbioticfi/core/src/interfaces/delegator/INetworkRestakeDelegator.sol";
 import {IBaseDelegator} from "@symbioticfi/core/src/interfaces/delegator/IBaseDelegator.sol";
 
@@ -85,8 +87,10 @@ contract DefaultCollateralMigratorTest is Test {
         operatorMetadataService = new MetadataService(address(operatorRegistry));
         networkMetadataService = new MetadataService(address(networkRegistry));
         networkMiddlewareService = new NetworkMiddlewareService(address(networkRegistry));
-        operatorVaultOptInService = new OptInService(address(operatorRegistry), address(vaultFactory));
-        operatorNetworkOptInService = new OptInService(address(operatorRegistry), address(networkRegistry));
+        operatorVaultOptInService =
+            new OptInService(address(operatorRegistry), address(vaultFactory), "OperatorVaultOptInService");
+        operatorNetworkOptInService =
+            new OptInService(address(operatorRegistry), address(networkRegistry), "OperatorNetworkOptInService");
 
         address vaultImpl =
             address(new Vault(address(delegatorFactory), address(slasherFactory), address(vaultFactory)));
@@ -115,6 +119,19 @@ contract DefaultCollateralMigratorTest is Test {
             )
         );
         delegatorFactory.whitelist(fullRestakeDelegatorImpl);
+
+        address operatorSpecificDelegatorImpl = address(
+            new OperatorSpecificDelegator(
+                address(operatorRegistry),
+                address(networkRegistry),
+                address(vaultFactory),
+                address(operatorVaultOptInService),
+                address(operatorNetworkOptInService),
+                address(delegatorFactory),
+                delegatorFactory.totalTypes()
+            )
+        );
+        delegatorFactory.whitelist(operatorSpecificDelegatorImpl);
 
         address slasherImpl = address(
             new Slasher(
@@ -170,23 +187,23 @@ contract DefaultCollateralMigratorTest is Test {
         operatorNetworkSharesSetRoleHolders[0] = alice;
         (address vault_,,) = vaultConfigurator.create(
             IVaultConfigurator.InitParams({
-                version: vaultFactory.lastVersion(),
+                version: 1,
                 owner: alice,
-                vaultParams: IVault.InitParams({
-                    collateral: address(feeOnTransferCollateral.asset()),
-                    delegator: address(0),
-                    slasher: address(0),
-                    burner: address(0xdEaD),
-                    epochDuration: epochDuration,
-                    depositWhitelist: false,
-                    isDepositLimit: false,
-                    depositLimit: 0,
-                    defaultAdminRoleHolder: alice,
-                    depositWhitelistSetRoleHolder: alice,
-                    depositorWhitelistRoleHolder: alice,
-                    isDepositLimitSetRoleHolder: alice,
-                    depositLimitSetRoleHolder: alice
-                }),
+                vaultParams: abi.encode(
+                    IVault.InitParams({
+                        collateral: address(feeOnTransferCollateral.asset()),
+                        burner: address(0xdEaD),
+                        epochDuration: epochDuration,
+                        depositWhitelist: false,
+                        isDepositLimit: false,
+                        depositLimit: 0,
+                        defaultAdminRoleHolder: alice,
+                        depositWhitelistSetRoleHolder: alice,
+                        depositorWhitelistRoleHolder: alice,
+                        isDepositLimitSetRoleHolder: alice,
+                        depositLimitSetRoleHolder: alice
+                    })
+                ),
                 delegatorIndex: 0,
                 delegatorParams: abi.encode(
                     INetworkRestakeDelegator.InitParams({
@@ -222,7 +239,7 @@ contract DefaultCollateralMigratorTest is Test {
         uint256 balanceBeforeAssetVault = IERC20(collateral.asset()).balanceOf(address(vault));
         uint256 balanceBeforeAssetMigrator = IERC20(collateral.asset()).balanceOf(address(defaultCollateralMigrator));
 
-        assertEq(vault.balanceOf(address(this)), 0);
+        assertEq(vault.slashableBalanceOf(address(this)), 0);
 
         collateral.approve(address(defaultCollateralMigrator), amount);
         defaultCollateralMigrator.migrate(address(collateral), address(vault), address(this), amount);
@@ -236,7 +253,7 @@ contract DefaultCollateralMigratorTest is Test {
             IERC20(collateral.asset()).balanceOf(address(defaultCollateralMigrator)) - balanceBeforeAssetMigrator, 0
         );
 
-        assertEq(vault.balanceOf(address(this)), amount);
+        assertEq(vault.slashableBalanceOf(address(this)), amount);
         assertEq(
             IERC20(collateral.asset()).allowance(address(defaultCollateralMigrator), address(vault)), type(uint256).max
         );
@@ -255,7 +272,7 @@ contract DefaultCollateralMigratorTest is Test {
         uint256 balanceBeforeAssetMigrator =
             IERC20(feeOnTransferCollateral.asset()).balanceOf(address(defaultCollateralMigrator));
 
-        assertEq(vaultFeeOnTransfer.balanceOf(address(this)), 0);
+        assertEq(vaultFeeOnTransfer.slashableBalanceOf(address(this)), 0);
 
         feeOnTransferCollateral.approve(address(defaultCollateralMigrator), amount);
         defaultCollateralMigrator.migrate(
@@ -278,7 +295,7 @@ contract DefaultCollateralMigratorTest is Test {
             0
         );
 
-        assertEq(vaultFeeOnTransfer.balanceOf(address(this)), amount - 2);
+        assertEq(vaultFeeOnTransfer.slashableBalanceOf(address(this)), amount - 2);
         assertEq(
             IERC20(feeOnTransferCollateral.asset()).allowance(
                 address(defaultCollateralMigrator), address(vaultFeeOnTransfer)
@@ -296,23 +313,23 @@ contract DefaultCollateralMigratorTest is Test {
         operatorNetworkSharesSetRoleHolders[0] = alice;
         (address vault_,,) = vaultConfigurator.create(
             IVaultConfigurator.InitParams({
-                version: vaultFactory.lastVersion(),
+                version: 1,
                 owner: alice,
-                vaultParams: IVault.InitParams({
-                    collateral: address(collateral.asset()),
-                    delegator: address(0),
-                    slasher: address(0),
-                    burner: address(0xdEaD),
-                    epochDuration: epochDuration,
-                    depositWhitelist: false,
-                    isDepositLimit: false,
-                    depositLimit: 0,
-                    defaultAdminRoleHolder: alice,
-                    depositWhitelistSetRoleHolder: alice,
-                    depositorWhitelistRoleHolder: alice,
-                    isDepositLimitSetRoleHolder: alice,
-                    depositLimitSetRoleHolder: alice
-                }),
+                vaultParams: abi.encode(
+                    IVault.InitParams({
+                        collateral: address(collateral.asset()),
+                        burner: address(0xdEaD),
+                        epochDuration: epochDuration,
+                        depositWhitelist: false,
+                        isDepositLimit: false,
+                        depositLimit: 0,
+                        defaultAdminRoleHolder: alice,
+                        depositWhitelistSetRoleHolder: alice,
+                        depositorWhitelistRoleHolder: alice,
+                        isDepositLimitSetRoleHolder: alice,
+                        depositLimitSetRoleHolder: alice
+                    })
+                ),
                 delegatorIndex: 0,
                 delegatorParams: abi.encode(
                     INetworkRestakeDelegator.InitParams({
