@@ -1,6 +1,7 @@
 # Compiler files
 cache/
-out/build-info/
+out/**/
+!out/DefaultCollateralMigrator.sol/
 
 # Ignores development broadcast logs
 !/broadcast
