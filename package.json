@@ -1,7 +1,7 @@
 {
   "name": "@symbioticfi/periphery",
   "version": "1.0.0-devnet.1",
-  "description": "Symbiotic is a shared security protocol enabling decentralized networks to control and customize their own multi-asset restaking implementation.",
+  "description": "Symbiotic Periphery repository contains a helper contract allowing users to migrate their funds from Default Collaterals to Vaults in a convenient way.",
   "homepage": "https://symbiotic.fi/",
   "bugs": "https://github.com/symbioticfi/periphery/issues",
   "license": "MIT",
@@ -25,6 +25,6 @@
   "dependencies": {
     "@openzeppelin/contracts": "5.0.2",
     "@openzeppelin/contracts-upgradeable": "5.0.2",
-    "@symbioticfi/core": "1.0.0-devnet.5"
+    "@symbioticfi/core": "1.0.0-devnet.9"
   }
 }
