@@ -1,6 +1,6 @@
 {
   "name": "@symbioticfi/periphery",
-  "version": "1.0.0-devnet.1",
+  "version": "1.0.0-devnet.2",
   "description": "Symbiotic Periphery repository contains a helper contract allowing users to migrate their funds from Default Collaterals to Vaults in a convenient way.",
   "homepage": "https://symbiotic.fi/",
   "bugs": "https://github.com/symbioticfi/periphery/issues",
