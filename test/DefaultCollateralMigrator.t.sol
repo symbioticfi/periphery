@@ -5,8 +5,9 @@ import {Test, console2} from "forge-std/Test.sol";
 
 import {DefaultCollateralMigrator} from "../src/contracts/DefaultCollateralMigrator.sol";
 
-import {IDefaultCollateralFactory} from "../src/interfaces/defaultCollateral/IDefaultCollateralFactory.sol";
-import {IDefaultCollateral} from "../src/interfaces/defaultCollateral/IDefaultCollateral.sol";
+import {IDefaultCollateralFactory} from
+    "@symbioticfi/collateral/src/interfaces/defaultCollateral/IDefaultCollateralFactory.sol";
+import {IDefaultCollateral} from "@symbioticfi/collateral/src/interfaces/defaultCollateral/IDefaultCollateral.sol";
 
 import {VaultFactory} from "@symbioticfi/core/src/contracts/VaultFactory.sol";
 import {DelegatorFactory} from "@symbioticfi/core/src/contracts/DelegatorFactory.sol";
@@ -202,7 +203,7 @@ contract DefaultCollateralMigratorTest is Test {
         operatorNetworkSharesSetRoleHolders[0] = alice;
         (address vault_,,) = vaultConfigurator.create(
             IVaultConfigurator.InitParams({
-                version: vaultFactory.lastVersion(),
+                version: 1,
                 owner: alice,
                 vaultParams: abi.encode(
                     IVault.InitParams({
@@ -328,7 +329,7 @@ contract DefaultCollateralMigratorTest is Test {
         operatorNetworkSharesSetRoleHolders[0] = alice;
         (address vault_,,) = vaultConfigurator.create(
             IVaultConfigurator.InitParams({
-                version: vaultFactory.lastVersion(),
+                version: 1,
                 owner: alice,
                 vaultParams: abi.encode(
                     IVault.InitParams({
