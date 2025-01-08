@@ -22,15 +22,18 @@ import {Vault} from "@symbioticfi/core/src/contracts/vault/Vault.sol";
 import {NetworkRestakeDelegator} from "@symbioticfi/core/src/contracts/delegator/NetworkRestakeDelegator.sol";
 import {FullRestakeDelegator} from "@symbioticfi/core/src/contracts/delegator/FullRestakeDelegator.sol";
 import {OperatorSpecificDelegator} from "@symbioticfi/core/src/contracts/delegator/OperatorSpecificDelegator.sol";
+import {OperatorNetworkSpecificDelegator} from
+    "@symbioticfi/core/src/contracts/delegator/OperatorNetworkSpecificDelegator.sol";
 import {Slasher} from "@symbioticfi/core/src/contracts/slasher/Slasher.sol";
 import {VetoSlasher} from "@symbioticfi/core/src/contracts/slasher/VetoSlasher.sol";
 
 import {Token} from "@symbioticfi/core/test/mocks/Token.sol";
 import {FeeOnTransferToken} from "@symbioticfi/core/test/mocks/FeeOnTransferToken.sol";
-import {VaultConfigurator, IVaultConfigurator} from "@symbioticfi/core/src/contracts/VaultConfigurator.sol";
-import {IVault} from "@symbioticfi/core/src/interfaces/vault/IVault.sol";
+import {VaultConfigurator} from "@symbioticfi/core/src/contracts/VaultConfigurator.sol";
+import {IVaultConfigurator} from "@symbioticfi/core/src/interfaces/IVaultConfigurator.sol";
 import {INetworkRestakeDelegator} from "@symbioticfi/core/src/interfaces/delegator/INetworkRestakeDelegator.sol";
 import {IBaseDelegator} from "@symbioticfi/core/src/interfaces/delegator/IBaseDelegator.sol";
+import {IVault} from "@symbioticfi/core/src/interfaces/vault/IVault.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -132,6 +135,19 @@ contract DefaultCollateralMigratorTest is Test {
             )
         );
         delegatorFactory.whitelist(operatorSpecificDelegatorImpl);
+
+        address operatorNetworkSpecificDelegatorImpl = address(
+            new OperatorNetworkSpecificDelegator(
+                address(operatorRegistry),
+                address(networkRegistry),
+                address(vaultFactory),
+                address(operatorVaultOptInService),
+                address(operatorNetworkOptInService),
+                address(delegatorFactory),
+                delegatorFactory.totalTypes()
+            )
+        );
+        delegatorFactory.whitelist(operatorNetworkSpecificDelegatorImpl);
 
         address slasherImpl = address(
             new Slasher(
