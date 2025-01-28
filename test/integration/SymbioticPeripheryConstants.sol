@@ -7,7 +7,7 @@ library SymbioticPeripheryConstants {
     function defaultCollateralMigrator() internal view returns (ISymbioticDefaultCollateralMigrator) {
         if (block.chainid == 1) {
             // mainnet
-            revert("SymbioticPeripheryConstants.defaultCollateralMigrator(): mainnet not supported yet");
+            return ISymbioticDefaultCollateralMigrator(0x8F152FEAA99eb6656F902E94BD4E7bCf563D4A43);
         } else if (block.chainid == 17_000) {
             // holesky
             return ISymbioticDefaultCollateralMigrator(0x1779C2277A61506b5BaB03Ab24782B8f5Bb6B287);
